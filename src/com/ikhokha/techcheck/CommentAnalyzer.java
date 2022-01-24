@@ -16,40 +16,29 @@ public class CommentAnalyzer {
 		this.file = file;
 	}
 	
-	public Map<String, Integer> analyze() {
+	public Map<String, Integer> analyze(LineAnalyzer[] CommentPlugins) {
 		
 		Map<String, Integer> resultsMap = new HashMap<>();
 		
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-			
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {			
 			String line = null;
 			while ((line = reader.readLine()) != null) {
-				
-				if (line.length() < 15) {
-					
-					incOccurrence(resultsMap, "SHORTER_THAN_15");
-
-				} else if (line.contains("Mover")) {
-
-					incOccurrence(resultsMap, "MOVER_MENTIONS");
-				
-				} else if (line.contains("Shaker")) {
-
-					incOccurrence(resultsMap, "SHAKER_MENTIONS");
-				
+				for(LineAnalyzer plugin : CommentPlugins) {				
+					if(plugin.getLine(line)) {
+						incOccurrence(resultsMap, plugin.type);
+					}
 				}
-			}
-			
+			}			
 		} catch (FileNotFoundException e) {
 			System.out.println("File not found: " + file.getAbsolutePath());
 			e.printStackTrace();
 		} catch (IOException e) {
 			System.out.println("IO Error processing file: " + file.getAbsolutePath());
 			e.printStackTrace();
-		}
-		
-		return resultsMap;
-		
+		} catch (Exception e) {
+			System.out.println("Unknown Error processing file: " + file.getAbsolutePath());
+		}		
+		return resultsMap;		
 	}
 	
 	/**
@@ -57,10 +46,8 @@ public class CommentAnalyzer {
 	 * @param countMap the map that keeps track of counts
 	 * @param key the key for the value to increment
 	 */
-	private void incOccurrence(Map<String, Integer> countMap, String key) {
-		
+	private void incOccurrence(Map<String, Integer> countMap, String key) {		
 		countMap.putIfAbsent(key, 0);
-		countMap.put(key, countMap.get(key) + 1);
+		countMap.put(key, countMap.get(key) + 1);		
 	}
-
 }
